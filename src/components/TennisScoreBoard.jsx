@@ -395,7 +395,7 @@ const TennisScoreBoard = () => {
     setPlayer2Name(settings.player2Name)
     setSetsToWin(settings.setsToWin)
     setShowSettings(false)
-    setServer(Math.random() < 0.5 ? 1 : 2)
+    setServer(1)
   }
 
   return (
