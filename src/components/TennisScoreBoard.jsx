@@ -423,19 +423,23 @@ const TennisScoreBoard = () => {
             <div className="space-x-4">
               <button
                 onClick={() => setShowSettings(true)}
-                className="text-blue-600 hover:text-blue-800"
+                className="text-blue-600 hover:text-blue-800 p-2"
               >
-                Settings
+                <img 
+                  src="/img/settings.jpg" 
+                  alt="Settings" 
+                  className="w-6 h-6 object-contain"
+                />
               </button>
               <button
                 onClick={() => setShowStats(true)}
-                className={`${
-                  isStatsHighlighted 
-                    ? 'text-blue-600 font-bold animate-pulse'
-                    : 'text-blue-600'
-                } hover:text-blue-800`}
+                className={`p-2 ${isStatsHighlighted ? 'animate-pulse' : ''}`}
               >
-                Stats
+                <img 
+                  src="/img/stats-icon.png" 
+                  alt="Stats" 
+                  className="w-6 h-6 object-contain"
+                />
               </button>
             </div>
           </div>
