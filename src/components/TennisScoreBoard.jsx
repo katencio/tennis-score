@@ -445,12 +445,25 @@ const TennisScoreBoard = () => {
           </div>
           
           <div className="flex justify-center">
+               {server === 1 && !matchWinner && (
+                <span className="text-yellow-400 font-bold text-xl pt-1.5">●</span>
+              )}<span className="p-2 sm:p-1">{player1Name}</span>
+              <span className='text-xl font-bold p-1'>{isTiebreak ? tiebreakScore1 : scores[player1Score]}</span>
+              <span className='text-xl font-bold p-1'> - </span>
+              <span className='font-bold text-xl p-1'>{isTiebreak ? tiebreakScore2 : scores[player2Score]}</span>
+              <span className="p-2">{player2Name}</span>
+              {server === 2 && !matchWinner && (
+                <span className="text-yellow-400 font-bold text-xl pt-1.5">●</span>
+              )}
+          </div>
+            
+          <div className="flex justify-center">
             <table className="border-collapse">
               <thead>
                 <tr>
-                  <th className="border border-gray-400 px-4 py-2">Players</th>
+                  <th className="border border-gray-400">Players</th>
                   {player1Sets.slice(0, Math.max(currentSet + 1, setsToWin * 2 - 1)).map((_, index) => (
-                    <th key={index} className="border border-gray-400 px-4 py-2">
+                    <th key={index} className="border border-gray-400 px-2 py-2">
                       Set {index + 1}
                     </th>
                   ))}
@@ -458,23 +471,17 @@ const TennisScoreBoard = () => {
               </thead>
               <tbody>
                 <tr>
-                  <td className="border border-gray-400 px-4 py-2">
-                    <div className="flex justify-between items-center min-w-[200px]">
+                  <td className="border border-gray-400">
+                    <div className="flex justify-between items-center px-2">
                       <span className={`flex items-center gap-2 ${
                         matchWinner === 1 ? 'text-blue-600 font-bold' : ''
                       }`}>
                         {player1Name}
-                        {server === 1 && !matchWinner && (
-                          <span className="text-yellow-600 text-xl">●</span>
-                        )}
-                      </span>
-                      <span className="font-bold ml-4">
-                        {isTiebreak ? tiebreakScore1 : scores[player1Score]}
                       </span>
                     </div>
                   </td>
                   {player1Sets.slice(0, Math.max(currentSet + 1, setsToWin * 2 - 1)).map((set, index) => (
-                    <td key={index} className={`border border-gray-400 px-4 py-2 text-center min-w-[60px] ${
+                    <td key={index} className={`border border-gray-400 py-2 text-center ${
                       currentSet === index ? 'bg-yellow-100' : ''
                     }`}>
                       {set}
@@ -482,23 +489,17 @@ const TennisScoreBoard = () => {
                   ))}
                 </tr>
                 <tr>
-                  <td className="border border-gray-400 px-4 py-2">
-                    <div className="flex justify-between items-center min-w-[200px]">
+                  <td className="border border-gray-400">
+                    <div className="flex justify-between items-center px-2">
                       <span className={`flex items-center gap-2 ${
                         matchWinner === 2 ? 'text-blue-600 font-bold' : ''
                       }`}>
                         {player2Name}
-                        {server === 2 && !matchWinner && (
-                          <span className="text-yellow-600 text-xl">●</span>
-                        )}
-                      </span>
-                      <span className="font-bold ml-4">
-                        {isTiebreak ? tiebreakScore2 : scores[player2Score]}
                       </span>
                     </div>
                   </td>
                   {player2Sets.slice(0, Math.max(currentSet + 1, setsToWin * 2 - 1)).map((set, index) => (
-                    <td key={index} className={`border border-gray-400 px-4 py-2 text-center min-w-[60px] ${
+                    <td key={index} className={`border border-gray-400 py-2 text-center ${
                       currentSet === index ? 'bg-yellow-100' : ''
                     }`}>
                       {set}
