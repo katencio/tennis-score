@@ -22,6 +22,9 @@ const TennisScoreBoard = () => {
   const [isTiebreak, setIsTiebreak] = useState(() => 
     JSON.parse(localStorage.getItem('isTiebreak')) || false
   )
+  const [isBreakPoint, setIsBreakPoint] = useState(() => 
+    JSON.parse(localStorage.getItem('isBreakPoint')) || false
+  )
   const [tiebreakScore1, setTiebreakScore1] = useState(() => 
     JSON.parse(localStorage.getItem('tiebreakScore1')) || 0
   )
@@ -39,19 +42,22 @@ const TennisScoreBoard = () => {
   const [setsToWin, setSetsToWin] = useState(() => 
     JSON.parse(localStorage.getItem('setsToWin')) || 2
   )
+
+  const statsInitialValues = {
+    player1Points: 0,
+    player2Points: 0,
+    player1BreakPoints: 0,
+    player2BreakPoints: 0,
+    player1BreakPointsWon: 0,
+    player2BreakPointsWon: 0,
+    player1MatchPoints: 0,
+    player2MatchPoints: 0,
+    player1MatchPointsWon: 0,
+    player2MatchPointsWon: 0
+  }
+
   const [stats, setStats] = useState(() => 
-    JSON.parse(localStorage.getItem('stats')) || {
-      player1Points: 0,
-      player2Points: 0,
-      player1BreakPoints: 0,
-      player2BreakPoints: 0,
-      player1BreakPointsWon: 0,
-      player2BreakPointsWon: 0,
-      player1MatchPoints: 0,
-      player2MatchPoints: 0,
-      player1MatchPointsWon: 0,
-      player2MatchPointsWon: 0
-    }
+    JSON.parse(localStorage.getItem('stats')) || statsInitialValues
   )
   const [server, setServer] = useState(() => 
     JSON.parse(localStorage.getItem('server')) || null
@@ -89,6 +95,10 @@ const TennisScoreBoard = () => {
   useEffect(() => {
     localStorage.setItem('isTiebreak', JSON.stringify(isTiebreak))
   }, [isTiebreak])
+
+  useEffect(() => {
+    localStorage.setItem('isBreakPoint', JSON.stringify(isBreakPoint))
+  }, [isBreakPoint])
 
   useEffect(() => {
     localStorage.setItem('tiebreakScore1', JSON.stringify(tiebreakScore1))
@@ -156,6 +166,7 @@ const TennisScoreBoard = () => {
   }, [player1Sets, player2Sets])
 
   const handlePoint = (player) => {
+
     if (matchWinner) return
 
     // Update stats
@@ -168,106 +179,140 @@ const TennisScoreBoard = () => {
       newStats.player2Points++
     }
 
-    // Check for break point (when returning server's serve)
-    if ((player === 1 && server === 2) || (player === 2 && server === 1)) {
-      // Break point scenarios:
-      // 1. Returner at 30, Server at 0, 15, or 30 (next point could be break point)
-      // 2. Returner at 40 or Ad (current point is break point)
-      if (player === 1) {
-        if (player1Score === 3 || player1Score === 4) {
-          // Current point is a break point
-          newStats.player1BreakPoints++
-          if (
-            (player1Score === 3 && player2Score < 3) || // Will win on 40
-            player1Score === 4 // Will win on Ad
-          ) {
-            newStats.player1BreakPointsWon++
-          }
-        }
-      } else {
-        if (player2Score === 3 || player2Score === 4) {
-          // Current point is a break point
-          newStats.player2BreakPoints++
-          if (
-            (player2Score === 3 && player1Score < 3) || // Will win on 40
-            player2Score === 4 // Will win on Ad
-          ) {
-            newStats.player2BreakPointsWon++
-          }
-        }
-      }
-    }
+    setStats(newStats)
+
+    console.log({'stats': { ...stats}})
+
+    // // Check for break point (when returning server's serve)
+    // if ((player === 1 && server === 2) || (player === 2 && server === 1)) {
+    //   // Break point scenarios:
+    //   // 1. Returner at 30, Server at 0, 15, or 30 (next point could be break point)
+    //   // 2. Returner at 40 or Ad (current point is break point)
+    //   if (player === 1) {
+    //     if (player1Score === 3 || player1Score === 4) {
+    //       // Current point is a break point
+    //       newStats.player1BreakPoints++
+    //       if (
+    //         (player1Score === 3 && player2Score < 3) || // Will win on 40
+    //         player1Score === 4 // Will win on Ad
+    //       ) {
+    //         newStats.player1BreakPointsWon++
+    //       }
+    //     }
+    //   } else {
+    //     if (player2Score === 3 || player2Score === 4) {
+    //       // Current point is a break point
+    //       newStats.player2BreakPoints++
+    //       if (
+    //         (player2Score === 3 && player1Score < 3) || // Will win on 40
+    //         player2Score === 4 // Will win on Ad
+    //       ) {
+    //         newStats.player2BreakPointsWon++
+    //       }
+    //     }
+    //   }
+    // }
 
     // Check for match point
     const setsWon1 = player1Sets.filter(s => s >= 6).length
     const setsWon2 = player2Sets.filter(s => s >= 6).length
     
     // Match point scenarios
-    if (
-      (setsWon1 === setsToWin - 1 && player === 1) || 
-      (setsWon2 === setsToWin - 1 && player === 2)
-    ) {
-      // Current game situation where player could win the match
-      if (
-        (player === 1 && player1Score === 3 && player2Score < 3) ||
-        (player === 2 && player2Score === 3 && player1Score < 3) ||
-        (player === 1 && player1Score === 4) ||
-        (player === 2 && player2Score === 4)
-      ) {
-        if (player === 1) {
-          newStats.player1MatchPoints++
-          if (
-            (player1Score === 3 && player2Score < 3) || // Will win on 40
-            player1Score === 4 // Will win on Ad
-          ) {
-            newStats.player1MatchPointsWon++
-          }
-        } else {
-          newStats.player2MatchPoints++
-          if (
-            (player2Score === 3 && player1Score < 3) || // Will win on 40
-            player2Score === 4 // Will win on Ad
-          ) {
-            newStats.player2MatchPointsWon++
-          }
-        }
-      }
-    }
-
-    setStats(newStats)
+    // if (
+    //   (setsWon1 === setsToWin - 1 && player === 1) || 
+    //   (setsWon2 === setsToWin - 1 && player === 2)
+    // ) {
+    //   // Current game situation where player could win the match
+    //   if (
+    //     (player === 1 && player1Score === 3 && player2Score < 3) ||
+    //     (player === 2 && player2Score === 3 && player1Score < 3) ||
+    //     (player === 1 && player1Score === 4) ||
+    //     (player === 2 && player2Score === 4)
+    //   ) {
+    //     if (player === 1) {
+    //       newStats.player1MatchPoints++
+    //       if (
+    //         (player1Score === 3 && player2Score < 3) || // Will win on 40
+    //         player1Score === 4 // Will win on Ad
+    //       ) {
+    //         newStats.player1MatchPointsWon++
+    //       }
+    //     } else {
+    //       newStats.player2MatchPoints++
+    //       if (
+    //         (player2Score === 3 && player1Score < 3) || // Will win on 40
+    //         player2Score === 4 // Will win on Ad
+    //       ) {
+    //         newStats.player2MatchPointsWon++
+    //       }
+    //     }
+    //   }
+    // }
 
     if (isTiebreak) {
       handleTiebreakPoint(player)
       return
     }
 
-    if (player === 1) {
+    const newPlayerStats = { ...stats }
+
+    if (player === 1) { // If the winner of the point is player 1
       if (player1Score === 3 && player2Score === 3) {
         setPlayer1Score(4) // Advantage
+        if (server === 2) { // If is serving player 2 this is breakpoint
+          setIsBreakPoint(true)
+          newPlayerStats.player1BreakPoints++
+          setStats(newPlayerStats)
+        }
       } else if (player1Score === 4) {
-        // Win game
+        // Player 1 wins the game
         handleGameWin(1)
         resetScore()
       } else if (player2Score === 4) {
         setPlayer2Score(3) // Remove advantage
+        setIsBreakPoint(false)
       } else if (player1Score < 3) {
+        if (server === 2 && player1Score >= 2 && player2Score < 3) {
+          setIsBreakPoint(true)
+          newPlayerStats.player1BreakPoints++
+          setStats(newPlayerStats)
+        }
+        if (server === 1 && player2Score >= 2 && player1Score < 3) {
+          newPlayerStats.player2BreakPoints++
+          setStats(newPlayerStats)
+        }
         setPlayer1Score(player1Score + 1)
       } else {
         // Win game
         handleGameWin(1)
         resetScore()
       }
-    } else {
+    } else { // If the winnder of the point is player 2
       // Similar logic for player 2
-      if (player1Score === 3 && player2Score === 3) {
+      if (player2Score === 3 && player1Score === 3) {
         setPlayer2Score(4) // Advantage
+        if (server === 1) { // If is serving player 2 this is breakpoint
+          setIsBreakPoint(true)
+          newPlayerStats.player2BreakPoints++
+          setStats(newPlayerStats)
+        }
       } else if (player2Score === 4) {
-        // Win game
+        // Player 2 Wins the game
         handleGameWin(2)
         resetScore()
       } else if (player1Score === 4) {
         setPlayer1Score(3) // Remove advantage
+        setIsBreakPoint(false)
       } else if (player2Score < 3) {
+        if (server === 1 && player2Score >= 2 && player1Score < 3) {
+          setIsBreakPoint(true)
+          newPlayerStats.player2BreakPoints++
+          setStats(newPlayerStats)
+        }
+        if (server === 2 && player1Score >= 2 && player2Score < 3) {
+          newPlayerStats.player1BreakPoints++
+          setStats(newPlayerStats)
+        }
         setPlayer2Score(player2Score + 1)
       } else {
         // Win game
@@ -293,9 +338,24 @@ const TennisScoreBoard = () => {
   }
 
   const handleGameWin = (player) => {
+    // Update the set score
     const newPlayer1Sets = [...player1Sets]
     const newPlayer2Sets = [...player2Sets]
-    
+
+    const newStats = { ...stats }
+
+
+    if (isBreakPoint) {
+      if (player === 1) {
+        newStats.player1BreakPointsWon++
+      } else {
+        newStats.player2BreakPointsWon++
+      }
+    }
+
+    setStats(newStats)
+    setIsBreakPoint(false)
+
     if (player === 1) {
       newPlayer1Sets[currentSet]++
     } else {
@@ -362,23 +422,25 @@ const TennisScoreBoard = () => {
     setPlayer1Sets([0, 0, 0, 0, 0])
     setPlayer2Sets([0, 0, 0, 0, 0])
     setIsTiebreak(false)
+    setIsBreakPoint(false)
     setTiebreakScore1(0)
     setTiebreakScore2(0)
-    setServer(Math.random() < 0.5 ? 1 : 2)
+    setServer(1)
     setMatchWinner(null)
     setIsStatsHighlighted(false)
     setShowSettings(true)
+    setStats(statsInitialValues)
     
     // Clear localStorage except for player names and stats
     const savedNames = {
       player1Name: localStorage.getItem('player1Name'),
       player2Name: localStorage.getItem('player2Name'),
-      stats: localStorage.getItem('stats')
+      stats: statsInitialValues
     }
     localStorage.clear()
     localStorage.setItem('player1Name', savedNames.player1Name)
     localStorage.setItem('player2Name', savedNames.player2Name)
-    localStorage.setItem('stats', savedNames.stats)
+    localStorage.setItem('stats', statsInitialValues)
   }
 
   const handleSettingsSave = (settings) => {
@@ -513,6 +575,12 @@ const TennisScoreBoard = () => {
           {matchWinner && (
             <div className="text-center mt-4 text-lg font-bold text-blue-600">
               {matchWinner === 1 ? player1Name : player2Name} wins the match!
+            </div>
+          )}
+
+          {isBreakPoint && (
+            <div className="text-center mt-4 text-lg font-bold text-red-600">
+              BreakPoint
             </div>
           )}
 
