@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
 import Settings from './Settings'
 import Stats from './Stats'
+import { toast, ToastContainer } from 'react-toastify';
+import "react-toastify/dist/ReactToastify.css";import ConfirmToast from './ConfirmToast';
 
 const TennisScoreBoard = () => {
   // Load initial state from localStorage or use defaults
@@ -9,6 +11,13 @@ const TennisScoreBoard = () => {
   )
   const [player2Score, setPlayer2Score] = useState(() => 
     JSON.parse(localStorage.getItem('player2Score')) || 0
+  )
+  const playerPointsInitialValues = {
+    player1Points: 0, 
+    player2Points: 0 
+  }
+  const [playerPoints, setPlayerPoints] = useState(() =>
+    JSON.parse(localStorage.getItem('playerPoints')) || playerPointsInitialValues
   )
   const [currentSet, setCurrentSet] = useState(() => 
     JSON.parse(localStorage.getItem('currentSet')) || 0
@@ -44,8 +53,6 @@ const TennisScoreBoard = () => {
   )
 
   const statsInitialValues = {
-    player1Points: 0,
-    player2Points: 0,
     player1BreakPoints: 0,
     player2BreakPoints: 0,
     player1BreakPointsWon: 0,
@@ -79,6 +86,10 @@ const TennisScoreBoard = () => {
   useEffect(() => {
     localStorage.setItem('player2Score', JSON.stringify(player2Score))
   }, [player2Score])
+
+  useEffect(() => {
+    localStorage.setItem('playerPoints', JSON.stringify(playerPoints))
+  }, [playerPoints])
 
   useEffect(() => {
     localStorage.setItem('currentSet', JSON.stringify(currentSet))
@@ -138,7 +149,7 @@ const TennisScoreBoard = () => {
 
   useEffect(() => {
     if (server === null) {
-      setServer(Math.random() < 0.5 ? 1 : 2)
+      setServer(1)
     }
   }, [])
 
@@ -169,86 +180,20 @@ const TennisScoreBoard = () => {
 
     if (matchWinner) return
 
-    // Update stats
-    const newStats = { ...stats }
-    
+    // Update playerPoints
+    const newPlayerPoints = { ...playerPoints }
     // Track points won
     if (player === 1) {
-      newStats.player1Points++
+      newPlayerPoints.player1Points++
     } else {
-      newStats.player2Points++
+      newPlayerPoints.player2Points++
     }
-
-    setStats(newStats)
-
-    console.log({'stats': { ...stats}})
-
-    // // Check for break point (when returning server's serve)
-    // if ((player === 1 && server === 2) || (player === 2 && server === 1)) {
-    //   // Break point scenarios:
-    //   // 1. Returner at 30, Server at 0, 15, or 30 (next point could be break point)
-    //   // 2. Returner at 40 or Ad (current point is break point)
-    //   if (player === 1) {
-    //     if (player1Score === 3 || player1Score === 4) {
-    //       // Current point is a break point
-    //       newStats.player1BreakPoints++
-    //       if (
-    //         (player1Score === 3 && player2Score < 3) || // Will win on 40
-    //         player1Score === 4 // Will win on Ad
-    //       ) {
-    //         newStats.player1BreakPointsWon++
-    //       }
-    //     }
-    //   } else {
-    //     if (player2Score === 3 || player2Score === 4) {
-    //       // Current point is a break point
-    //       newStats.player2BreakPoints++
-    //       if (
-    //         (player2Score === 3 && player1Score < 3) || // Will win on 40
-    //         player2Score === 4 // Will win on Ad
-    //       ) {
-    //         newStats.player2BreakPointsWon++
-    //       }
-    //     }
-    //   }
-    // }
+    setPlayerPoints(newPlayerPoints )
 
     // Check for match point
     const setsWon1 = player1Sets.filter(s => s >= 6).length
     const setsWon2 = player2Sets.filter(s => s >= 6).length
     
-    // Match point scenarios
-    // if (
-    //   (setsWon1 === setsToWin - 1 && player === 1) || 
-    //   (setsWon2 === setsToWin - 1 && player === 2)
-    // ) {
-    //   // Current game situation where player could win the match
-    //   if (
-    //     (player === 1 && player1Score === 3 && player2Score < 3) ||
-    //     (player === 2 && player2Score === 3 && player1Score < 3) ||
-    //     (player === 1 && player1Score === 4) ||
-    //     (player === 2 && player2Score === 4)
-    //   ) {
-    //     if (player === 1) {
-    //       newStats.player1MatchPoints++
-    //       if (
-    //         (player1Score === 3 && player2Score < 3) || // Will win on 40
-    //         player1Score === 4 // Will win on Ad
-    //       ) {
-    //         newStats.player1MatchPointsWon++
-    //       }
-    //     } else {
-    //       newStats.player2MatchPoints++
-    //       if (
-    //         (player2Score === 3 && player1Score < 3) || // Will win on 40
-    //         player2Score === 4 // Will win on Ad
-    //       ) {
-    //         newStats.player2MatchPointsWon++
-    //       }
-    //     }
-    //   }
-    // }
-
     if (isTiebreak) {
       handleTiebreakPoint(player)
       return
@@ -281,6 +226,9 @@ const TennisScoreBoard = () => {
           newPlayerStats.player2BreakPoints++
           setStats(newPlayerStats)
         }
+        if (player2Score === 3 && player1Score === 2) {
+          setIsBreakPoint(false)
+        }
         setPlayer1Score(player1Score + 1)
       } else {
         // Win game
@@ -312,6 +260,9 @@ const TennisScoreBoard = () => {
         if (server === 2 && player1Score >= 2 && player2Score < 3) {
           newPlayerStats.player1BreakPoints++
           setStats(newPlayerStats)
+        }
+        if (player1Score === 3 && player2Score === 2) {
+          setIsBreakPoint(false)
         }
         setPlayer2Score(player2Score + 1)
       } else {
@@ -416,8 +367,20 @@ const TennisScoreBoard = () => {
     setPlayer2Score(0)
   }
 
+  const resetMatchConfirmation = () => {
+
+    // Show confirmation toast
+    
+    toast(<ConfirmToast confirmAction={resetMatch} />, {
+      position: "top-center",
+      autoClose: false,
+      closeOnClick: false,
+    })
+  }
+
   const resetMatch = () => {
     resetScore()
+    setPlayerPoints(playerPointsInitialValues)
     setCurrentSet(0)
     setPlayer1Sets([0, 0, 0, 0, 0])
     setPlayer2Sets([0, 0, 0, 0, 0])
@@ -615,7 +578,7 @@ const TennisScoreBoard = () => {
 
           <div className="flex justify-center mt-4">
             <button
-              onClick={resetMatch}
+              onClick={resetMatchConfirmation}
               className="text-blue-600 hover:text-blue-800 px-4 py-2 rounded border border-blue-600 hover:bg-blue-50"
             >
               Reset Match
@@ -632,9 +595,12 @@ const TennisScoreBoard = () => {
             />
           )}
 
+          <ToastContainer />
+
           {showStats && (
             <Stats
               stats={{
+                ...playerPoints,
                 ...stats,
                 player1Name,
                 player2Name
